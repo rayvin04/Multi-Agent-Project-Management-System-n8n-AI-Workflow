@@ -1,0 +1,2444 @@
+{
+  "name": "Multi-Agent Project Management System",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        240
+      ],
+      "id": "7b80610c-7f5c-4549-879d-7fcb6edbe0e0",
+      "name": "Extract Excel"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        48
+      ],
+      "id": "d7082c5e-63fa-4f97-9d6e-408a1a79708a",
+      "name": "Extract PDF"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        432
+      ],
+      "id": "ef75ef56-12aa-4ae8-9d80-f159d46f2393",
+      "name": "Extract CSV"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are Archivus, an AI Document Intelligence Assistant responsible for analyzing documents before they are stored in ClickUp.\n\nThis is the data of the documents you need to analyze:\n\n{{ $json.document_text }}\n\nIf it's a PDF, you do not need to use the extracted text above. Instead, analyze the PDF directly.\n\nYour role is NOT to rewrite, critique, summarize excessively, or expand the document.\n\nYour responsibility is to understand the document and extract structured information that helps organize, search, and manage it inside a personal ClickUp workspace.\n\nUse simple language. Avoid jargon and overly complicated wording.\n\nYou will receive:\n- The document text\n- The original filename\n- The document caption (if provided)\n- The upload date and time\n\nThe upload timestamp is:\n\n{{ $now }}\n\nUse this timestamp only as a reference when calculating relative deadlines or timeframes.\n\nCarefully analyze the entire document.\n\nIf a caption exists, use it only as supporting context. Always prioritize the document itself.\n\nReturn ONLY valid JSON using the schema below.\n\n{\n  \"title\": \"\",\n  \"summary\": \"\",\n  \"document_type\": \"\",\n  \"purpose\": \"\",\n  \"category\": \"\",\n  \"importance\": \"\",\n  \"priority\": \"\",\n  \"keywords\": [],\n  \"tags\": [],\n  \"action_items\": \"\",\n  \"deadline\": [] \n}\n\n----------------------------------------\nField Definitions\n----------------------------------------\n\ntitle\n\nCreate a concise title that best represents the document.\n\nDo not simply copy the filename unless it is already descriptive.\n\nKeep it under 10 words.\n\n----------------------------------------\n\nsummary\n\nWrite a brief summary describing what the document contains and why it exists.\n\nMaximum 50 words.\n\n----------------------------------------\n\ndocument_type\n\nChoose the best document type.\n\nExamples:\n\nProject Proposal\nMeeting Notes\nResearch\nInvoice\nReceipt\nSpreadsheet\nChecklist\nLearning Notes\nResume\nDocumentation\nReport\nReference Material\nCourse Material\nRoadmap\nGuide\n\n----------------------------------------\n\npurpose\n\nDescribe why this document exists.\n\nExamples:\n\nTrack learning progress\nDocument meeting decisions\nStore project requirements\nReference documentation\nPlan future tasks\nArchive important information\nRecord financial information\nProvide implementation guidance\nSupport learning\n\n----------------------------------------\n\ncategory\n\nChoose ONE category.\n\nExamples:\n\nLearning\nWork\nBusiness\nDevelopment\nResearch\nFinance\nAdministration\nMarketing\nPersonal\nDesign\n\n----------------------------------------\n\nimportance\n\nDetermine how valuable this document is for future reference.\n\nHigh\n\nCritical learning resources, contracts, project plans, implementation guides, financial records, certifications, documentation, active projects.\n\nMedium\n\nUseful guides, meeting notes, research, documentation, tutorials, references.\n\nLow\n\nTemporary information, drafts, quick references, disposable content.\n\n----------------------------------------\n\npriority\n\nDetermine how urgently this document requires attention.\n\nUrgent\n\nImmediate action is required.\n\nHigh\n\nShould be reviewed or acted on soon.\n\nNormal\n\nUseful but not immediately required.\n\nLow\n\nCan be reviewed later.\n\nClear\n\nNo immediate action is required.\nThe document mainly serves as a reference or archive.\n\n----------------------------------------\n\nkeywords\n\nReturn ONLY THREE searchable keywords.\n\nChoose the most important concepts discussed.\n\nExample:\n\n[\n\"Docker\",\n\"n8n\",\n\"PostgreSQL\"\n]\n\n----------------------------------------\n\ntags\n\nGenerate EXACTLY THREE ClickUp tags.\n\nKeep them short and searchable.\n\nExamples:\n\nLearning\nDocumentation\nReference\nFinance\nBackend\nAutomation\nAI\nProgramming\n\n----------------------------------------\n\naction_items\n\nGenerate ONE concise actionable recommendation.\n\nMaximum 10 words.\n\nThis recommendation should represent the single best next step after reading the document.\n\nPriority:\n\n1. If explicit tasks exist, summarize them.\n2. If it is a learning resource, recommend beginning or following the learning plan.\n3. If it is a project plan, recommend starting implementation.\n4. If it is meeting notes, recommend following the decisions.\n5. If it is documentation or a guide, recommend reviewing or using it.\n6. If it is a reference document, recommend keeping it for future reference.\n\nExamples:\n\nLearning roadmap\n\n\"Start Week 1 lessons.\"\n\nCourse guide\n\n\"Follow the learning schedule.\"\n\nAPI documentation\n\n\"Review the API documentation.\"\n\nMeeting notes\n\n\"Follow up on action items.\"\n\nProject proposal\n\n\"Review the implementation plan.\"\n\nInvoice\n\n\"Review and pay the invoice.\"\n\nReference guide\n\n\"Use as future reference.\"\n\nIf absolutely no meaningful recommendation exists, return:\n\n\"No action required.\"\n\n----------------------------------------\n\ndeadlines\n\nExtract every meaningful deadline, timeframe, milestone, schedule, or completion target mentioned in the document.\n\nUse the upload timestamp as the reference for relative calculations.\n\nIf the document contains explicit calendar dates, return them.\n\nExamples:\n\nJuly 15, 2026\n\nDecember 31, 2026\n\nQ4 2026\n\nIf the document specifies a duration or timeframe, calculate the completion date relative to the upload timestamp.\n\nExamples:\n\n\"Complete in 2 weeks.\"\n\n→ upload date + 14 days\n\n\"30-day roadmap\"\n\n→ upload date + 30 days\n\n\"Finish within 3 months.\"\n\n→ upload date + 3 months\n\n\"Week 1–2\"\n\n→ upload date + 14 days\n\n\"Tomorrow\"\n\n→ upload date + 1 day\n\n\"Next Monday\"\n\n→ next Monday relative to the upload timestamp\n\nIf the document is a structured learning roadmap, implementation plan, bootcamp, challenge, course, or schedule, infer the overall completion date from the stated duration.\n\nExample:\n\n\"GoHighLevel 2-Week Learning Program\"\n\n→ deadline = upload date + 14 days\n\nReturn every significant calculated or explicit deadline.\n\nIf no deadlines, schedules, or timeframes exist, return an empty array.\n\n----------------------------------------\nRules\n----------------------------------------\n\nKeep the summary under 50 words.\n\nNever invent information.\n\nNever invent deadlines.\n\nOnly calculate deadlines when the document explicitly provides a duration, schedule, roadmap, timeframe, milestone, or relative date.\n\nDo not calculate deadlines if the document contains no timing information.\n\nIf information is unavailable, return an empty string or an empty array.\n\nImportance must be one of:\n\nHigh\nMedium\nLow\n\nPriority must be one of:\n\nUrgent\nHigh\nNormal\nLow\nClear\n\nReturn ONLY valid JSON.\n\nDo not include markdown, explanations, comments, or additional text.",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2272,
+        240
+      ],
+      "id": "473a08a5-2f2d-45a1-91b0-8bbad2e31213",
+      "name": "Archivus: Document Assistant"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are Spectra, an AI Visual Intelligence Assistant responsible for analyzing images before they are stored in ClickUp.\n\nYour responsibility is to understand the visual content of an image and extract structured information that helps organize, search, and manage it inside a personal ClickUp workspace.\n\nYou will receive an uploaded image.\n\nCarefully analyze the entire image.\n\nIf the image contains text, read and use it as part of your understanding, but also consider the visual context, layout, objects, and overall scene.\n\nDo not focus only on OCR. Understand what the image represents.\n\nReturn ONLY valid JSON using the schema below.\n\n{\n  \"title\": \"\",\n  \"summary\": \"\",\n  \"image_type\": \"\",\n  \"purpose\": \"\",\n  \"category\": \"\",\n  \"importance\": \"\",\n  \"priority\": \"\",\n  \"keywords\": [],\n  \"tags\": [],\n  \"recommended_action\": \"\"\n}\n\nField Definitions\n\ntitle\n\nCreate a concise title that best represents the image.\n\nExamples:\n\nDocker Architecture Diagram\nWeekly Sales Dashboard\nMeeting Whiteboard\nJava Class Diagram\nUI Login Mockup\nReceipt from Grocery Store\n\nsummary\n\nWrite a brief summary (maximum 50 words) describing what the image contains and why it may be useful.\n\nimage_type\n\nClassify the image.\n\nExamples:\n\nPhotograph\nScreenshot\nDiagram\nChart\nReceipt\nInvoice\nPresentation Slide\nWhiteboard\nFlowchart\nUI Design\nInfographic\nDocument Scan\nArtwork\nMeme\n\npurpose\n\nDescribe why the image exists.\n\nExamples:\n\nCapture meeting notes\nStore design reference\nRecord financial transaction\nDocument project progress\nReference documentation\nSave learning material\nTrack ideas\nArchive important information\n\ncategory\n\nChoose the single category that best fits the image.\n\nExamples:\n\nWork\nPersonal\nLearning\nFinance\nBusiness\nDevelopment\nResearch\nAdministration\nDesign\nMarketing\n\nimportance\n\nDetermine how valuable the image is for future reference.\n\nHigh\n\nCritical project assets, important documentation, diagrams, financial records, learning resources.\n\nMedium\n\nUseful screenshots, references, notes, examples, supporting material.\n\nLow\n\nTemporary images, casual photos, quick references, disposable content.\n\npriority\n\nDetermine how urgently the image requires attention.\n\nUrgent\n\nImmediate action is required.\n\nHigh\n\nShould be reviewed soon.\n\nNormal\n\nUseful but not time-sensitive.\n\nLow\n\nCan be reviewed later.\n\nClear\n\nNo action is required. The image is only for reference or archival purposes.\n\nkeywords\n\nReturn ONLY 3 important searchable keywords.\n\nExample:\n\n[\"Docker\",\"Architecture\",\"Containers\"]\n\ntags\n\nGenerate ONLY 3 short ClickUp tags.\n\nExamples:\n\nLearning\nReference\nDesign\nScreenshot\nUI\nMeeting\nFinance\nIdeas\n\nrecommended_action\n\nProvide one short actionable recommendation based on the image.\n\nExamples:\n\nReview the architecture diagram.\nImplement the UI design.\nArchive for future reference.\nStudy the concepts shown.\nExtract the meeting notes.\nVerify the receipt details.\nNo action required.\n\nRules\n\nKeep the summary under 50 words.\n\nNever invent information.\n\nBase every conclusion on visible content only.\n\nIf the image contains insufficient information, return empty strings where appropriate.\n\nDo not identify unknown people.\n\nDo not infer locations, identities, or events that are not visually supported.\n\nImportance must be one of:\nHigh\nMedium\nLow\n\nPriority must be one of:\nUrgent\nHigh\nNormal\nLow\nClear\n\nReturn only valid JSON.\n\nDo not include markdown, explanations, comments, or additional text.",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1360,
+        -472
+      ],
+      "id": "53cd6b6e-8d95-413c-8bd0-d5a156706a49",
+      "name": "Spectra: AI Image Intelligence"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are Praetor, an AI Personal Productivity Intelligence Assistant responsible for organizing Rayvin Gianan's ideas, reminders, goals, learning plans, meetings, and projects into structured ClickUp tasks.\n\nYou are not a generic task manager.\n\nYou are the central intelligence behind Rayvin's personal productivity system.\n\nAbout Rayvin\n\nRayvin is an AI Automation Specialist and a first-year BSIT student who is building his career in automation, software development, and artificial intelligence.\n\nHis primary goal is to continuously improve his technical skills, build real-world projects, and become highly employable in the technology industry.\n\nHe frequently works with:\n\n• n8n\n• GoHighLevel\n• Zapier\n• Make\n• ElevenLabs\n• AI Agents\n• OpenRouter\n• ChatGPT\n• Claude\n• Gemini\n\nHe is also studying and improving his programming skills, including:\n\n• Java\n• SQL\n• JavaScript\n• HTML\n• CSS\n\nHe plans to continue learning technologies such as:\n\n• Docker\n• Cybersecurity\n• Cloud Computing\n• APIs\n• Databases\n• Software Engineering\n• DevOps\n• Artificial Intelligence\n\nHe regularly:\n\n• applies for jobs\n• builds automation workflows\n• studies programming\n• experiments with AI tools\n• watches tutorials\n• takes online courses\n• manages personal projects\n• stores future ideas\n• keeps reminders\n• plans meetings\n• tracks long-term goals\n\nYour responsibility is to understand his intent from even the shortest messages.\n\nMany of his messages will only contain a few words.\n\nExamples:\n\n\"Learn Docker\"\n\n\"Java OOP\"\n\n\"Apply to ABC Company\"\n\n\"Meeting tomorrow 2pm\"\n\n\"Finish portfolio\"\n\n\"GHL SaaS ideas\"\n\n\"Cybersecurity roadmap\"\n\nEven if the message is short, determine its most likely purpose without inventing facts.\n\nThe message to analyze is:\n\n{{ $json.text }}\n\nThe message was received at:\n\n{{ $json.date }} {{ $json.time }}\n\nUse this timestamp as the task's start date.\n\nReturn ONLY valid JSON using the schema below.\n\n{\n  \"title\": \"\",\n  \"summary\": \"\",\n  \"task_type\": \"\",\n  \"purpose\": \"\",\n  \"category\": \"\",\n  \"importance\": \"\",\n  \"priority\": \"\",\n  \"recommended_action\": \"\",\n  \"tags\": [],\n  \"start_date\": \"\",\n  \"deadline\": \"\"\n}\n\nField Definitions\n\ntitle\n\nCreate a concise task title.\n\nExamples:\n\nLearn Docker\nFinish Java Assignment\nApply to Automation Job\nStudy SQL Joins\nPrepare Client Meeting\n\nsummary\n\nSummarize the user's intention in one concise sentence (maximum 40 words).\n\ntask_type\n\nChoose one:\n\nTask\nReminder\nMeeting\nLearning\nIdea\nResearch\nPurchase\nHabit\nProject\nPersonal Goal\n\npurpose\n\nExplain why this task exists.\n\nExamples:\n\nLearn a new technology\nComplete an assignment\nPrepare for a meeting\nCapture an idea\nImprove career opportunities\nBuild an automation workflow\nApply for a job\n\ncategory\n\nChoose one category.\n\nExamples:\n\nLearning\nCareer\nAutomation\nProgramming\nBusiness\nPersonal\nFinance\nSchool\nResearch\nProductivity\n\nimportance\n\nDetermine the long-term value.\n\nHigh\n\nCareer growth, education, client work, important projects, certifications, portfolio building, automation systems, major learning goals.\n\nMedium\n\nUseful reminders, research, planning, supporting tasks.\n\nLow\n\nOptional ideas, references, or low-impact tasks.\n\npriority\n\nDetermine urgency.\n\nUrgent\n\nRequires immediate attention.\n\nHigh\n\nShould be completed soon.\n\nNormal\n\nNo immediate urgency.\n\nLow\n\nCan wait.\n\nrecommended_action\n\nProvide ONE concise actionable recommendation.\n\nExamples:\n\nBegin the first lesson.\nCreate an implementation plan.\nApply for the position.\nReview the documentation.\nSchedule the meeting.\nBreak the project into milestones.\n\ntags\n\nGenerate 2 to 5 useful ClickUp tags.\n\nPrefer tags related to Rayvin's recurring interests and technologies whenever appropriate.\n\nExamples:\n\nAutomation\nn8n\nGoHighLevel\nJava\nSQL\nJavaScript\nDocker\nCybersecurity\nAI\nCareer\nLearning\nPortfolio\nBusiness\nProgramming\nMeeting\nReminder\n\nDo not force these tags if they are unrelated to the message.\n\nstart_date\n\nAlways use the timestamp of the received message as the task's start date.\n\ndeadline\n\nIf the user explicitly provides a deadline, calculate the exact deadline relative to the received timestamp.\n\nExamples:\n\n\"I need this in 4 days.\"\n→ deadline = message timestamp + 4 days\n\n\"Finish this in 1 month.\"\n→ deadline = message timestamp + 1 month\n\n\"Tomorrow at 2 PM.\"\n→ deadline = tomorrow at 2 PM relative to the received timestamp.\n\nIf no deadline is explicitly mentioned, return an empty string.\n\nRules\n\nUnderstand the user's intent even from very short messages.\n\nUse Rayvin's background only to improve categorization, tags, and recommendations.\n\nNever invent deadlines.\n\nNever invent meetings.\n\nNever invent people.\n\nNever invent projects that are not mentioned.\n\nOnly calculate deadlines when the user explicitly specifies a relative or absolute timeframe.\n\nSummaries must be under 40 words.\n\nImportance must be one of:\n\nHigh\nMedium\nLow\n\nPriority must be one of:\n\nUrgent\nHigh\nNormal\nLow\n\nReturn only valid JSON.\n\nDo not include markdown, explanations, or comments.",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        896,
+        -768
+      ],
+      "id": "49cfb296-0fb3-4a19-82e0-1e7daebcfce7",
+      "name": "Praetor - Task & Project Intelligence"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d333c075-ca02-4e9a-9b46-e6c1cca86cfb",
+              "name": "messageType",
+              "value": "={{ $json.messageType }}",
+              "type": "string"
+            },
+            {
+              "id": "c937cd62-2207-4731-b0f8-9f23a3d014e7",
+              "name": "file_id",
+              "value": "={{ $json.document.file_id }}",
+              "type": "string"
+            },
+            {
+              "id": "50caea87-2003-4c1b-8616-ff15d49d140d",
+              "name": "file_unique_id",
+              "value": "={{ $json.document.file_unique_id }}",
+              "type": "string"
+            },
+            {
+              "id": "39032bda-2bba-4f77-96dd-f57e96ec08ea",
+              "name": "file_name",
+              "value": "={{ $json.document.file_name }}",
+              "type": "string"
+            },
+            {
+              "id": "2172a34f-95c5-435a-a32b-593e5b82f5da",
+              "name": "mime_type",
+              "value": "={{ $json.document.mime_type }}",
+              "type": "string"
+            },
+            {
+              "id": "6633a8c7-80bc-4464-982e-fed85967bb65",
+              "name": "file_size",
+              "value": "={{ $json.document.file_size }}",
+              "type": "number"
+            },
+            {
+              "id": "709d07d0-b69e-420e-b571-b84298fa5e12",
+              "name": "caption",
+              "value": "={{ $json.document.caption }}",
+              "type": "string"
+            },
+            {
+              "id": "97968443-5354-4646-94b3-e6dd3579fb6b",
+              "name": "date",
+              "value": "={{ $now.toFormat('MMMM d, yyyy') }}",
+              "type": "string"
+            },
+            {
+              "id": "9999566d-c5ed-4a18-bedc-5a4262186876",
+              "name": "time",
+              "value": "={{ $now.toFormat('h:mm a') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        64
+      ],
+      "id": "42298811-b988-4d3c-8043-d1bd00aac357",
+      "name": "📄 Receive Document"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        984,
+        64
+      ],
+      "id": "32a094e3-494c-4154-a110-5e7fc39a7bb1",
+      "name": "📄 Download Telegram File",
+      "webhookId": "5dd4c5bb-9906-4a72-a508-1cdbabc1da6b",
+      "credentials": {
+        "telegramApi": {
+          "id": "kKkujhe9AC1DAIKp",
+          "name": "ClickUp Project Manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nlet documentText = \"\";\n\nitems.forEach((item, index) => {\n  documentText += `Row ${index + 1}\\n`;\n\n  for (const [key, value] of Object.entries(item.json)) {\n    if (value !== null && value !== undefined && value !== \"\") {\n      documentText += `${key}: ${value}\\n`;\n    }\n  }\n\n  documentText += \"\\n\";\n});\n\nreturn [\n  {\n    json: {\n      document_text: documentText.trim()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        240
+      ],
+      "id": "ff59a1fc-b7a8-45ff-b365-eee9fefb7efb",
+      "name": "📄 Prepare AI Input"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst priorityMap = {\n  \"Urgent\": \"1\",\n  \"High\": \"2\",\n  \"Normal\": \"3\",\n  \"Low\": \"4\",\n  \"Clear\": null\n};\n\nitem.clickup_priority = priorityMap[item.output.priority] ?? null;\n\nreturn [\n  {\n    json: item\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2704,
+        240
+      ],
+      "id": "b2aebebf-e2f2-439d-a484-814b9da06f15",
+      "name": "📄 Convert ClickUp Priority"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3376,
+        64
+      ],
+      "id": "9434f5ba-53b0-474f-85fe-2eeb23b558f2",
+      "name": "📄 Merge Task & File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nconst title = $('📄 Create ClickUp Document Task').item.json.name;\n\nconst oldName = item.binary.data.fileName;\n\nconst extension = oldName.includes(\".\")\n  ? oldName.split(\".\").pop()\n  : \"\";\n\nitem.binary.data.fileName = extension\n  ? `${title}.${extension}`\n  : title;\n\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        64
+      ],
+      "id": "7c8ad170-25e7-41d7-85d8-2ee67a6812da",
+      "name": "📄 Rename Document File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.clickup.com/api/v2/task/' + $('📄 Create ClickUp Document Task').item.json.id + '/attachment' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "pk_306671987_N2PD4037M9K71KJKVQWSAOO84A1BVR1O"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "attachment",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3824,
+        64
+      ],
+      "id": "eeb1075c-642a-4734-91cf-57972a514958",
+      "name": "📄 Upload Attachment to ClickUp"
+    },
+    {
+      "parameters": {
+        "chatId": "6634042279",
+        "text": "=*📚 Document Archived*\n\n━━━━━━━━━━━━━━━━━━\n\n*Title:* {{ $json.title }}\n\n*Summary:* {{ $('Archivus: Document Assistant').item.json.output.summary }}\n\n*Purpose:* {{ $('Archivus: Document Assistant').item.json.output.purpose }}\n\n*Importance:* {{ $('Archivus: Document Assistant').item.json.output.importance }}\n\n*Recommended Action:* {{ $('Archivus: Document Assistant').item.json.output.action_items }}\n\n*Archived On:* {{ $now.toFormat('MMMM d, yyyy') }} at {{ $now.toFormat('h:mm a').toUpperCase() }}\n\n*✅ ClickUp task and attachment created successfully.*",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4048,
+        64
+      ],
+      "id": "be8874f6-4622-4674-87de-2e8b0d1564af",
+      "name": "📄 Notify via Telegram",
+      "webhookId": "bdba93e6-4bf9-4744-8277-3d002dcc47af",
+      "credentials": {
+        "telegramApi": {
+          "id": "kKkujhe9AC1DAIKp",
+          "name": "ClickUp Project Manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE",
+          "mode": "list",
+          "cachedResultName": "ClickUP Project Management",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ClickUp",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $now.toFormat('MMMM d, yyyy') }} {{ $now.toFormat('h:mm a').toUpperCase() }}",
+            "Message Type": "={{ $('⚙️ Classify Incoming Message').item.json.messageType }}",
+            "Title": "={{ $('Archivus: Document Assistant').item.json.output.title }}",
+            "Summary": "={{ $('Archivus: Document Assistant').item.json.output.summary }}",
+            "Category": "={{ $('Archivus: Document Assistant').item.json.output.category }}",
+            "Priority": "={{ $('Archivus: Document Assistant').item.json.output.priority }}",
+            "Importance": "={{ $('Archivus: Document Assistant').item.json.output.importance }}",
+            "Action": "={{ $('Archivus: Document Assistant').item.json.output.action_items }}",
+            "File Name": "={{ $('📥 Receive Telegram Message').item.json.message.document.file_name }}",
+            "Type": "={{ $('Archivus: Document Assistant').item.json.output.document_type }}"
+          },
+          "matchingColumns": [
+            "Time"
+          ],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message Type",
+              "displayName": "Message Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Importance",
+              "displayName": "Importance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Action",
+              "displayName": "Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "File Name",
+              "displayName": "File Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4272,
+        64
+      ],
+      "id": "8cdc7bfe-3493-486b-ac7b-8b824b35b117",
+      "name": "📄 Log Activity Database",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RJcTyC1IZYIvHSsD",
+          "name": "giananrayvin@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.clickup.com/api/v2/list/901615775557/field",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "pk_306671987_N2PD4037M9K71KJKVQWSAOO84A1BVR1O"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2928,
+        240
+      ],
+      "id": "93bc9c63-e0b7-447d-8116-859f5828b37e",
+      "name": "📄 Get ClickUp Document Field IDs"
+    },
+    {
+      "parameters": {
+        "team": "90161462087",
+        "space": "90167410712",
+        "folder": "901610308940",
+        "list": "901615775557",
+        "name": "={{ $('Archivus: Document Assistant').item.json.output.title }}",
+        "additionalFields": {
+          "assignees": [
+            306671987
+          ],
+          "customFieldsJson": "=[\n  {\n    \"id\": \"21bf6096-1667-4d88-aa7f-9b37605707f4\",\n    \"value\": \"{{ $('Archivus: Document Assistant').item.json.output.summary }}\"\n  },\n  {\n    \"id\": \"677cbbac-3d71-4fc3-b77e-26daee08b366\",\n    \"value\": \"{{ $('Archivus: Document Assistant').item.json.output.purpose }}\"\n  },\n  {\n    \"id\": \"751d2ea8-ca85-4c81-922d-dbae8c128b7c\",\n    \"value\": \"{{ $('Archivus: Document Assistant').item.json.output.importance }}\"\n  },\n  {\n    \"id\": \"7e067810-3454-429c-867e-0bdaa5af968d\",\n    \"value\": \"{{ $('Archivus: Document Assistant').item.json.output.category }}\"\n  },\n  {\n    \"id\": \"800ba90e-ca20-46c9-938b-ff82203939dd\",\n    \"value\": \"{{ $('Archivus: Document Assistant').item.json.output.action_items }}\"\n  },\n  {\n    \"id\": \"a0c81afb-d067-4698-a930-cf43514954ce\",\n    \"value\": \"{{ $('Archivus: Document Assistant').item.json.output.document_type }}\"\n  }\n]",
+          "content": "={{ $('Archivus: Document Assistant').item.json.output.summary }}",
+          "dueDate": "={{ $('Archivus: Document Assistant').item.json.output.deadline[0] }}",
+          "priority": "={{ $('📄 Convert ClickUp Priority').item.json.clickup_priority }}",
+          "tags": "={{ $('Archivus: Document Assistant').item.json.output.tags }}"
+        }
+      },
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        3152,
+        240
+      ],
+      "id": "00c26ff3-7f89-4c01-8f3c-5ba3f477c632",
+      "name": "📄 Create ClickUp Document Task",
+      "credentials": {
+        "clickUpApi": {
+          "id": "ZYfLbpf8EAPuTc1j",
+          "name": "ClickUp Rayvin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        464
+      ],
+      "id": "745d249f-9464-4c40-9efd-c22f0ba12301",
+      "name": "Mistral small",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "yWly0tCWBTx1OdEF",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        464
+      ],
+      "id": "2a50ff47-5f2a-46d6-a9cd-3c7cbdcacc9a",
+      "name": "GPT-Oss 120b",
+      "credentials": {
+        "openRouterApi": {
+          "id": "YyHq0mF8knJNRiV0",
+          "name": "OpenRouter: GPT-Oss"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"title\": \"\",\n  \"summary\": \"\",\n  \"document_type\": \"\",\n  \"purpose\": \"\",\n  \"category\": \"\",\n  \"importance\": \"\",\n  \"priority\": \"\",\n  \"keywords\": [],\n  \"tags\": [],\n  \"action_items\": \"\",\n  \"deadline\": []\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2496,
+        464
+      ],
+      "id": "cf576751-93f8-42e0-bdfd-65d0db6782f6",
+      "name": "Output Parser"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.result.file_path }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "16a1ea99-9622-46c1-9b5a-3536a0c159b6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "PDF?"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2ab86f29-cad6-48f2-a0a5-7f9412c5ef02",
+                    "leftValue": "={{ $json.result.file_path }}",
+                    "rightValue": "xlsx",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Excel?"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8b281331-0afc-44bb-be78-25111909983b",
+                    "leftValue": "={{ $json.result.file_path }}",
+                    "rightValue": "csv",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "CSV?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1448,
+        268
+      ],
+      "id": "059c0782-8e63-4053-a768-0bfc9786b15a",
+      "name": "📄 Detect Document Type"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        -348
+      ],
+      "id": "ab517127-492d-4171-9afa-a1984c32bb27",
+      "name": "📥 Receive Telegram Message",
+      "webhookId": "eeddc7b5-3f3c-4206-8a85-1d2b15bc0047",
+      "credentials": {
+        "telegramApi": {
+          "id": "kKkujhe9AC1DAIKp",
+          "name": "ClickUp Project Manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $json.message || {};\n\nconst output = {\n  messageType: \"unknown\",\n  text: null,\n  image: null,\n  document: null,\n};\n\n// TEXT\nif (message.text) {\n  output.messageType = \"text\";\n  output.text = {\n    content: message.text,\n  };\n}\n\n// IMAGE\nelse if (message.photo && message.photo.length > 0) {\n  const photo = message.photo[message.photo.length - 1];\n\n  output.messageType = \"image\";\n  output.image = {\n    file_id: photo.file_id,\n    file_unique_id: photo.file_unique_id,\n    width: photo.width,\n    height: photo.height,\n    file_size: photo.file_size || null,\n    caption: message.caption || \"\",\n  };\n}\n\n// DOCUMENT\nelse if (message.document) {\n  output.messageType = \"document\";\n  output.document = {\n    file_id: message.document.file_id,\n    file_unique_id: message.document.file_unique_id,\n    file_name: message.document.file_name,\n    mime_type: message.document.mime_type,\n    file_size: message.document.file_size,\n    caption: message.caption || \"\",\n  };\n}\n\nreturn [\n  {\n    json: output,\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        -348
+      ],
+      "id": "4e3f2b43-19cc-4dd0-a34c-ce353e7c8893",
+      "name": "⚙️ Classify Incoming Message"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "text",
+                    "rightValue": "={{ $json.messageType }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "2012f2e5-8a2d-46cb-b7b5-7a8e91c0a5a1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6505fa62-2d75-457f-9725-78c5d342550b",
+                    "leftValue": "image",
+                    "rightValue": "={{ $json.messageType }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Image"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "87394b35-3f64-4ffa-942f-e391e7709767",
+                    "leftValue": "document",
+                    "rightValue": "={{ $json.messageType }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Document"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        -364
+      ],
+      "id": "528ab4f6-d91b-48ca-a7aa-7b8c4fd27c9b",
+      "name": "🚦 Route by Message Type"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d333c075-ca02-4e9a-9b46-e6c1cca86cfb",
+              "name": "messageType",
+              "value": "={{ $json.messageType }}",
+              "type": "string"
+            },
+            {
+              "id": "c937cd62-2207-4731-b0f8-9f23a3d014e7",
+              "name": "file_id",
+              "value": "={{ $json.image.file_id }}",
+              "type": "string"
+            },
+            {
+              "id": "50caea87-2003-4c1b-8616-ff15d49d140d",
+              "name": "file_unique_id",
+              "value": "={{ $json.image.file_unique_id }}",
+              "type": "string"
+            },
+            {
+              "id": "39032bda-2bba-4f77-96dd-f57e96ec08ea",
+              "name": "width",
+              "value": "={{ $json.image.width }}",
+              "type": "number"
+            },
+            {
+              "id": "2172a34f-95c5-435a-a32b-593e5b82f5da",
+              "name": "height",
+              "value": "={{ $json.image.height }}",
+              "type": "number"
+            },
+            {
+              "id": "6633a8c7-80bc-4464-982e-fed85967bb65",
+              "name": "image_file_size",
+              "value": "={{ $json.image.file_size }}",
+              "type": "number"
+            },
+            {
+              "id": "709d07d0-b69e-420e-b571-b84298fa5e12",
+              "name": "caption",
+              "value": "={{ $json.image.caption }}",
+              "type": "string"
+            },
+            {
+              "id": "97968443-5354-4646-94b3-e6dd3579fb6b",
+              "name": "date",
+              "value": "={{ $now.toFormat('MMMM d, yyyy') }}",
+              "type": "string"
+            },
+            {
+              "id": "9999566d-c5ed-4a18-bedc-5a4262186876",
+              "name": "time",
+              "value": "={{ $now.toFormat('h:mm a') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        -348
+      ],
+      "id": "3dd3bd09-2052-4a5b-8d5c-ae3e6be200a4",
+      "name": "🖼️ Normalize Image Data"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        984,
+        -348
+      ],
+      "id": "93e8b153-1235-4623-845d-545746ebcd6d",
+      "name": "🖼️ Download Image",
+      "webhookId": "6a1bd17a-393a-4a86-b9d1-325f9d441f3d",
+      "credentials": {
+        "telegramApi": {
+          "id": "kKkujhe9AC1DAIKp",
+          "name": "ClickUp Project Manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"title\": \"\",\n  \"summary\": \"\",\n  \"image_type\": \"\",\n  \"purpose\": \"\",\n  \"category\": \"\",\n  \"importance\": \"\",\n  \"priority\": \"\",\n  \"keywords\": [],\n  \"tags\": [],\n  \"recommended_action\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1584,
+        -248
+      ],
+      "id": "23848333-5732-4058-a975-fa3ac321b934",
+      "name": "JSON Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1328,
+        -248
+      ],
+      "id": "f7ecbea0-4396-40bf-8ec1-c48316d271fb",
+      "name": "Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Q4MpRzhG82EPebhB",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "mistral-small-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        -248
+      ],
+      "id": "f5043657-6d68-4b95-8fc5-b16719e31ea4",
+      "name": "Mistral latest",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "yWly0tCWBTx1OdEF",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst priorityMap = {\n  \"Urgent\": \"1\",\n  \"High\": \"2\",\n  \"Normal\": \"3\",\n  \"Low\": \"4\",\n  \"Clear\": null\n};\n\nitem.clickup_priority = priorityMap[item.output.priority] ?? null;\n\nreturn [\n  {\n    json: item\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        -472
+      ],
+      "id": "e36b2775-e980-4a3f-acd9-32c3d51865b3",
+      "name": "🖼️ Convert ClickUp Priority"
+    },
+    {
+      "parameters": {
+        "url": "https://api.clickup.com/api/v2/list/901615775557/field",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "pk_306671987_N2PD4037M9K71KJKVQWSAOO84A1BVR1O"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2016,
+        -472
+      ],
+      "id": "20e0f092-e3d2-4c9b-8f17-bcfaf0a93a3e",
+      "name": "🖼️ Get ClickUp Gallery Field IDs"
+    },
+    {
+      "parameters": {
+        "team": "90161462087",
+        "space": "90167410712",
+        "folder": "901610309034",
+        "list": "901615775681",
+        "name": "={{ $('Spectra: AI Image Intelligence').item.json.output.title }}",
+        "additionalFields": {
+          "assignees": [
+            306671987
+          ],
+          "customFieldsJson": "=[\n  {\n    \"id\": \"21bf6096-1667-4d88-aa7f-9b37605707f4\",\n    \"value\": \"{{ $('🖼️ Convert ClickUp Priority').item.json.output.summary }}\"\n  },\n  {\n    \"id\": \"677cbbac-3d71-4fc3-b77e-26daee08b366\",\n    \"value\": \"{{ $('🖼️ Convert ClickUp Priority').item.json.output.purpose }}\"\n  },\n  {\n    \"id\": \"751d2ea8-ca85-4c81-922d-dbae8c128b7c\",\n    \"value\": \"{{ $('🖼️ Convert ClickUp Priority').item.json.output.importance }}\"\n  },\n  {\n    \"id\": \"7e067810-3454-429c-867e-0bdaa5af968d\",\n    \"value\": \"{{ $('🖼️ Convert ClickUp Priority').item.json.output.category }}\"\n  },\n  {\n    \"id\": \"800ba90e-ca20-46c9-938b-ff82203939dd\",\n    \"value\": \"{{ $('🖼️ Convert ClickUp Priority').item.json.output.recommended_action }}\"\n  },\n  {\n    \"id\": \"a0c81afb-d067-4698-a930-cf43514954ce\",\n    \"value\": \"{{ $('🖼️ Convert ClickUp Priority').item.json.output.image_type }}\"\n  }\n]",
+          "content": "={{ $('Spectra: AI Image Intelligence').item.json.output.summary }}",
+          "priority": "={{ $('🖼️ Convert ClickUp Priority').item.json.clickup_priority }}",
+          "tags": "={{ $('🖼️ Convert ClickUp Priority').item.json.output.tags }}"
+        }
+      },
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        2360,
+        -472
+      ],
+      "id": "fc781340-4f25-401d-87fa-7ff52e8d333b",
+      "name": "🖼️ Create ClickUp Gallery Task",
+      "credentials": {
+        "clickUpApi": {
+          "id": "ZYfLbpf8EAPuTc1j",
+          "name": "ClickUp Rayvin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\n// AI-generated title from the ClickUp task\nconst title = $('🖼️ Create ClickUp Gallery Task').item.json.name;\n\n// Find the binary property dynamically\nconst binaryKey = Object.keys(item.binary)[0];\nconst binary = item.binary[binaryKey];\n\n// Determine the extension\nlet extension = \"\";\n\n// 1. Use the provided file extension if available\nif (binary.fileExtension) {\n  extension = binary.fileExtension.toLowerCase();\n}\n\n// 2. Otherwise extract it from the original filename\nelse if (binary.fileName && binary.fileName.includes(\".\")) {\n  extension = binary.fileName.split(\".\").pop().toLowerCase();\n}\n\n// 3. Otherwise infer it from the MIME type\nelse if (binary.mimeType && binary.mimeType.startsWith(\"image/\")) {\n  extension = binary.mimeType.replace(\"image/\", \"\").toLowerCase();\n\n  // Normalize common MIME aliases\n  if (extension === \"jpeg\") extension = \"jpg\";\n  if (extension === \"svg+xml\") extension = \"svg\";\n}\n\n// 4. Final fallback\nelse {\n  extension = \"jpg\";\n}\n\n// Rename the file\nbinary.fileName = `${title}.${extension}`;\n\nreturn [item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2928,
+        -348
+      ],
+      "id": "7ea8d6ff-d1e9-4f15-8eac-b1eb9caf7a04",
+      "name": "🖼️ Rename Image File"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2704,
+        -348
+      ],
+      "id": "cb9fcca3-f99b-4f41-b0a9-56b34d8444a8",
+      "name": "🖼️ Merge Task & Image"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.clickup.com/api/v2/task/' + $('🖼️ Create ClickUp Gallery Task').item.json.id + '/attachment' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "pk_306671987_N2PD4037M9K71KJKVQWSAOO84A1BVR1O"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "attachment",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3152,
+        -348
+      ],
+      "id": "fc154241-de81-4ad3-9d39-0ff1907313fa",
+      "name": "🖼️ Upload Image Attachment"
+    },
+    {
+      "parameters": {
+        "chatId": "6634042279",
+        "text": "=*🖼️ Image Archived*\n\n━━━━━━━━━━━━━━━━━━\n\n*Title:* {{ $('Spectra: AI Image Intelligence').item.json.output.title }}\n\n*Summary:* {{ $('Spectra: AI Image Intelligence').item.json.output.summary }}\n\n*Image Type:* {{ $('Spectra: AI Image Intelligence').item.json.output.image_type }}\n\n*Category:* {{ $('Spectra: AI Image Intelligence').item.json.output.category }}\n\n*Importance:* {{ $('Spectra: AI Image Intelligence').item.json.output.importance }}\n\n*Recommended Action:* {{ $('Spectra: AI Image Intelligence').item.json.output.recommended_action }}\n\n*Archived On:* {{ $now.toFormat('MMMM d, yyyy') }} at {{ $now.toFormat('h:mm a').toUpperCase() }}\n\n*✅ ClickUp task and image uploaded successfully.*",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3376,
+        -348
+      ],
+      "id": "bba02a55-ecb7-4692-b0ff-59da174a90f4",
+      "name": "💬 Send Image Summary",
+      "webhookId": "bdba93e6-4bf9-4744-8277-3d002dcc47af",
+      "credentials": {
+        "telegramApi": {
+          "id": "kKkujhe9AC1DAIKp",
+          "name": "ClickUp Project Manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE",
+          "mode": "list",
+          "cachedResultName": "ClickUP Project Management",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ClickUp",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $now.toFormat('MMMM d, yyyy') }} {{ $now.toFormat('h:mm a').toUpperCase() }}",
+            "Message Type": "={{ $('⚙️ Classify Incoming Message').item.json.messageType }}",
+            "Title": "={{ $('Spectra: AI Image Intelligence').item.json.output.title }}",
+            "Summary": "={{ $('Spectra: AI Image Intelligence').item.json.output.summary }}",
+            "Category": "={{ $('Spectra: AI Image Intelligence').item.json.output.category }}",
+            "Priority": "={{ $('Spectra: AI Image Intelligence').item.json.output.priority }}",
+            "Importance": "={{ $('Spectra: AI Image Intelligence').item.json.output.importance }}",
+            "Action": "={{ $('Spectra: AI Image Intelligence').item.json.output.recommended_action }}",
+            "File Name": "={{ $('🖼️ Rename Image File').item.json.name }}",
+            "Type": "={{ $('Spectra: AI Image Intelligence').item.json.output.image_type }}"
+          },
+          "matchingColumns": [
+            "Time"
+          ],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message Type",
+              "displayName": "Message Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Importance",
+              "displayName": "Importance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Action",
+              "displayName": "Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "File Name",
+              "displayName": "File Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caption",
+              "displayName": "Caption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3600,
+        -348
+      ],
+      "id": "b05f2157-69ca-446d-aa77-58f70b97d5da",
+      "name": "📊 Log AI Activity",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RJcTyC1IZYIvHSsD",
+          "name": "giananrayvin@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "797a8979-cfbc-41bc-a203-321c349a2530",
+              "name": "messageType",
+              "value": "={{ $json.messageType }}",
+              "type": "string"
+            },
+            {
+              "id": "882d7f86-f276-43a0-9d34-fb2670e78456",
+              "name": "text",
+              "value": "={{ $json.text.content }}",
+              "type": "string"
+            },
+            {
+              "id": "33f52b10-27f7-4af1-bde5-5c3529948851",
+              "name": "date",
+              "value": "={{ $now.toFormat('MMMM d, yyyy') }}",
+              "type": "string"
+            },
+            {
+              "id": "6d73f54b-e153-49b9-a2a6-dbfaedd02f3a",
+              "name": "time",
+              "value": "={{ $now.toFormat('h:mm a') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        -768
+      ],
+      "id": "222d0c90-e6bf-4b57-9416-5b191863e6a1",
+      "name": "📝 Get Text Time Received"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -544
+      ],
+      "id": "bab36b31-5261-46ca-ba1e-23f7cc037224",
+      "name": "Mistral",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "yWly0tCWBTx1OdEF",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        992,
+        -544
+      ],
+      "id": "5384e526-d12f-4b07-979d-8dc30315d238",
+      "name": "Gemini Flash",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Q4MpRzhG82EPebhB",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"title\": \"\",\n  \"summary\": \"\",\n  \"task_type\": \"\",\n  \"purpose\": \"\",\n  \"category\": \"\",\n  \"importance\": \"\",\n  \"priority\": \"\",\n  \"recommended_action\": \"\",\n  \"tags\": [],\n  \"start_date\": \"\",\n  \"deadline\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        -544
+      ],
+      "id": "0b0b44b3-7a5a-4203-a0b0-d3f11d75ac3a",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nconst priorityMap = {\n  \"Urgent\": \"1\",\n  \"High\": \"2\",\n  \"Normal\": \"3\",\n  \"Low\": \"4\",\n  \"Clear\": null\n};\n\nitem.clickup_priority = priorityMap[item.output.priority] ?? null;\n\nreturn [\n  {\n    json: item\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1448,
+        -768
+      ],
+      "id": "473864cb-ae37-41bc-93a0-000415f5d1fa",
+      "name": "📝 Convert ClickUp Priority"
+    },
+    {
+      "parameters": {
+        "url": "https://api.clickup.com/api/v2/list/901615775557/field",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "pk_306671987_N2PD4037M9K71KJKVQWSAOO84A1BVR1O"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1792,
+        -768
+      ],
+      "id": "08c2b4e5-5a36-416d-932f-6b0b536ce18b",
+      "name": "📝 Get ClickUp Project Field IDs"
+    },
+    {
+      "parameters": {
+        "team": "90161462087",
+        "space": "90167410712",
+        "folder": "901610309016",
+        "list": "901615775655",
+        "name": "={{ $('Praetor - Task & Project Intelligence').item.json.output.title }}",
+        "additionalFields": {
+          "assignees": [
+            306671987
+          ],
+          "customFieldsJson": "=[\n  {\n    \"id\": \"21bf6096-1667-4d88-aa7f-9b37605707f4\",\n    \"value\": \"{{ $('Praetor - Task & Project Intelligence').item.json.output.summary }}\"\n  },\n  {\n    \"id\": \"677cbbac-3d71-4fc3-b77e-26daee08b366\",\n    \"value\": \"{{ $('Praetor - Task & Project Intelligence').item.json.output.purpose }}\"\n  },\n  {\n    \"id\": \"751d2ea8-ca85-4c81-922d-dbae8c128b7c\",\n    \"value\": \"{{ $('Praetor - Task & Project Intelligence').item.json.output.importance }}\"\n  },\n  {\n    \"id\": \"7e067810-3454-429c-867e-0bdaa5af968d\",\n    \"value\": \"{{ $('Praetor - Task & Project Intelligence').item.json.output.category }}\"\n  },\n  {\n    \"id\": \"800ba90e-ca20-46c9-938b-ff82203939dd\",\n    \"value\": \"{{ $('Praetor - Task & Project Intelligence').item.json.output.recommended_action }}\"\n  },\n  {\n    \"id\": \"a0c81afb-d067-4698-a930-cf43514954ce\",\n    \"value\": \"{{ $('Praetor - Task & Project Intelligence').item.json.output.task_type }}\"\n  }\n]",
+          "content": "={{ $('Praetor - Task & Project Intelligence').item.json.output.summary }}",
+          "dueDate": "={{ $('Praetor - Task & Project Intelligence').item.json.output.deadline }}",
+          "priority": "={{ $('📝 Convert ClickUp Priority').item.json.clickup_priority }}",
+          "tags": "={{ $('Praetor - Task & Project Intelligence').item.json.output.tags }}"
+        }
+      },
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        -768
+      ],
+      "id": "c70bea8d-fb92-422c-b7a9-3c1005ec2a9b",
+      "name": "📝 Create ClickUp Project Task",
+      "credentials": {
+        "clickUpApi": {
+          "id": "ZYfLbpf8EAPuTc1j",
+          "name": "ClickUp Rayvin"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6634042279",
+        "text": "=*📋 New Task Created*\n\n━━━━━━━━━━━━━━━━━━\n\n*Title:* {{ $('Praetor - Task & Project Intelligence').item.json.output.title }}\n\n*Summary:* {{ $('Praetor - Task & Project Intelligence').item.json.output.summary }}\n\n*Task Type:* {{ $('Praetor - Task & Project Intelligence').item.json.output.task_type }}\n\n*Priority:* {{ $('Praetor - Task & Project Intelligence').item.json.output.priority }}\n\n*Importance:* {{ $('Praetor - Task & Project Intelligence').item.json.output.importance }}\n\n*Recommended Action:* {{ $('Praetor - Task & Project Intelligence').item.json.output.recommended_action }}\n\n*Created On:* {{ $now.toFormat('MMMM d, yyyy') }} at {{ $now.toFormat('h:mm a').toUpperCase() }}\n\n*Deadline:* {{\n$('Praetor - Task & Project Intelligence').item.json.output.deadline\n  ? DateTime.fromISO($('Praetor - Task & Project Intelligence').item.json.output.deadline).toFormat('MMMM d, yyyy')\n  : 'N/A'\n}}\n\n*✅ Task successfully added to ClickUp.*",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2360,
+        -768
+      ],
+      "id": "60bffb5d-0e41-4b61-a716-f0f7260e0933",
+      "name": "💬 Send Project Summary",
+      "webhookId": "bdba93e6-4bf9-4744-8277-3d002dcc47af",
+      "credentials": {
+        "telegramApi": {
+          "id": "kKkujhe9AC1DAIKp",
+          "name": "ClickUp Project Manager"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE",
+          "mode": "list",
+          "cachedResultName": "ClickUP Project Management",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "ClickUp",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $now.toFormat('MMMM d, yyyy') }} {{ $now.toFormat('h:mm a').toUpperCase() }}",
+            "Message Type": "={{ $('⚙️ Classify Incoming Message').item.json.messageType }}",
+            "Title": "={{ $('Praetor - Task & Project Intelligence').item.json.output.title }}",
+            "Summary": "={{ $('Praetor - Task & Project Intelligence').item.json.output.summary }}",
+            "Category": "={{ $('Praetor - Task & Project Intelligence').item.json.output.category }}",
+            "Priority": "={{ $('Praetor - Task & Project Intelligence').item.json.output.priority }}",
+            "Importance": "={{ $('Praetor - Task & Project Intelligence').item.json.output.importance }}",
+            "Action": "={{ $('Praetor - Task & Project Intelligence').item.json.output.recommended_action }}",
+            "File Name": "=Text",
+            "Type": "=TO-DO Project: {{ $('Praetor - Task & Project Intelligence').item.json.output.task_type }}"
+          },
+          "matchingColumns": [
+            "Time"
+          ],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Message Type",
+              "displayName": "Message Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Importance",
+              "displayName": "Importance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Action",
+              "displayName": "Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "File Name",
+              "displayName": "File Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caption",
+              "displayName": "Caption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2704,
+        -768
+      ],
+      "id": "c10442e7-ecd2-4d72-9d4a-5e170f2a5771",
+      "name": "📊 Log Project Activity",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RJcTyC1IZYIvHSsD",
+          "name": "giananrayvin@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE",
+          "mode": "list",
+          "cachedResultName": "ClickUP Project Management",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 128467127,
+          "mode": "list",
+          "cachedResultName": "Project Monitoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1olHnqFWMS9z-lrSPxHgLHljSMDMp9JpJzBu0_McmFaE/edit#gid=128467127"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time Created": "={{ $now.toFormat('MMMM d, yyyy') }} {{ $now.toFormat('h:mm a').toUpperCase() }}",
+            "Title": "={{ $('Praetor - Task & Project Intelligence').item.json.output.title }}",
+            "Summary": "={{ $('Praetor - Task & Project Intelligence').item.json.output.summary }}",
+            "Task Type": "={{ $('Praetor - Task & Project Intelligence').item.json.output.task_type }}",
+            "Purpose": "={{ $('Praetor - Task & Project Intelligence').item.json.output.purpose }}",
+            "Importance": "={{ $('Praetor - Task & Project Intelligence').item.json.output.importance }}",
+            "Priority": "={{ $('Praetor - Task & Project Intelligence').item.json.output.priority }}",
+            "Action": "={{ $('Praetor - Task & Project Intelligence').item.json.output.recommended_action }}",
+            "Deadline": "={{\n$('Praetor - Task & Project Intelligence').item.json.output.deadline\n  ? DateTime.fromISO($('Praetor - Task & Project Intelligence').item.json.output.deadline).toFormat('MMMM d, yyyy')\n  : 'N/A'\n}}",
+            "Tags": "={{ $('Praetor - Task & Project Intelligence').item.json.output.tags }}"
+          },
+          "matchingColumns": [
+            "Time Created"
+          ],
+          "schema": [
+            {
+              "id": "Time Created",
+              "displayName": "Time Created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Task Type",
+              "displayName": "Task Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Purpose",
+              "displayName": "Purpose",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Importance",
+              "displayName": "Importance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Action",
+              "displayName": "Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Deadline",
+              "displayName": "Deadline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tags",
+              "displayName": "Tags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2928,
+        -768
+      ],
+      "id": "b1b9f33a-4844-4588-ab04-acc0361b7958",
+      "name": "📈 Update Project Dashboard",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RJcTyC1IZYIvHSsD",
+          "name": "giananrayvin@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Multi-Agent Project Management System",
+        "height": 80,
+        "width": 704,
+        "color": "#2A2828"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1456,
+        -1280
+      ],
+      "typeVersion": 1,
+      "id": "a16ca415-a2b9-414a-a03b-d9bd7d569b1a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "A centralized multi-agent knowledge and project management system that intelligently analyzes documents, images, and text to create organized, searchable, and actionable records. Each type of content is processed by a specialized AI agent that extracts key information, categorizes it, identifies priorities and deadlines, creates structured ClickUp tasks, stores activity logs, and sends real-time notifications, reducing manual organization while building a personal second brain.",
+        "height": 240,
+        "width": 320,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1376,
+        -1152
+      ],
+      "id": "19c0fb5e-31b5-4008-a98b-214f1eea53b5",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "1. Receive a message from Telegram.\n2. Classify it as Text, Image, or Document.\n3. Route it to the appropriate AI agent.\n4. AI analyzes the content and extracts structured information.\n5. Create a ClickUp task with custom fields and tags.\n6. Upload the original attachment (if applicable).\n7. Send a Telegram confirmation with the AI summary.\n8. Log the activity in Google Sheets.\n9. Update the Project Dashboard (Text branch only).",
+        "height": 240,
+        "width": 432,
+        "color": "#130619"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1024,
+        -1152
+      ],
+      "id": "1ea932a4-71d3-4e14-9cfc-c55d7e51f2b3",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "### PROBLEM IT SOLVES\n\n• Eliminates the manual organization of documents, images, notes, and ideas.\n• Prevents important information from getting buried in chat conversations.\n• Automatically converts unstructured content into organized ClickUp tasks.\n• Centralizes documents, learning resources, references, and projects in one searchable workspace.\n• Reduces repetitive work such as categorizing, tagging, summarizing, and documenting.\n• Builds a personal knowledge base that is easy to search, manage, and maintain.",
+        "height": 288,
+        "width": 384,
+        "color": "#1F045D"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        -880
+      ],
+      "id": "8ebffd5b-2219-472b-9ab9-92311861b6fa",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "### ESTIMATED TIME SAVED\n\nManual Process (Per Item)\n\n• Read and understand content (2–5 min)\n• Create a ClickUp task (1–2 min)\n• Upload the attachment (30–60 sec)\n• Categorize, prioritize, and tag (1–2 min)\n• Write summaries and notes (2–3 min)\n• Update tracking spreadsheets (1–2 min)\n\nTotal: Approximately 7–15 minutes",
+        "height": 224,
+        "width": 336,
+        "color": "#181A4E"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -960,
+        -880
+      ],
+      "id": "d32f4bf3-d0da-40d6-82c6-ab285055b02a",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 AI AGENTS\n\n📄 Archivus – Document Intelligence\n\n• Analyzes documents\n• Generates summaries\n• Identifies document types\n• Extracts categories, priorities, and deadlines\n• Recommends next actions\n• Archives documents into ClickUp\n\n🖼️ Spectra – Visual Intelligence\n\n• Understands image content\n• Generates descriptions and summaries\n• Classifies images\n• Identifies important visual information\n• Organizes images into ClickUp\n\n📝 Praetor – Task & Project Intelligence\n\n• Understands ideas, reminders, and project notes\n• Identifies priorities and deadlines\n• Extracts goals and next actions\n• Creates structured ClickUp project tasks\n• Tracks ongoing work through the Project Dashboard",
+        "height": 448,
+        "width": 416,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -1136
+      ],
+      "id": "2dcc91aa-30a8-4c56-9d5e-9a9be94d7b97",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## 🛠️ TOOLS & TECHNOLOGIES\n\n• n8n\n• Telegram Bot API\n• ClickUp API\n• Google Sheets\n• HTTP Request Nodes\n• JavaScript Code Nodes\n• Merge Nodes\n• Switch Nodes\n• AI Agent Nodes\n• Mistral AI\n• Google Gemini\n• GPT-OSS\n• JSON Output Parsing\n• ClickUp Custom Fields\n• Binary File Processing\n• Markdown Formatting",
+        "height": 368,
+        "width": 304,
+        "color": "#A19BF3"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1360,
+        -560
+      ],
+      "id": "7d936a68-b88e-4c6b-9389-9337ecb21c57",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## ⚠️ IMPORTANT SETUP INFORMATION\n\nThis workflow serves as a blueprint and requires configuration before it can be used.\n\nBefore running the workflow:\n\n• Replace every credential with your own.\n• Create your own Telegram Bot using @BotFather and configure the Telegram credentials in n8n.\n• Replace the ClickUp credentials and update your Workspace, Space, Folder, List, and Custom Field IDs.\n• Replace the Google Sheets credentials and spreadsheet IDs.\n• Configure your preferred AI provider and API credentials.\n• Update the HTTP Request nodes with your own authentication where necessary.\n\nThe included AI system prompts are tailored to my personal workflow and may reference my name, goals, tools, and work preferences. Customize these prompts to match your own use case before deploying the workflow.\n\nTelegram is used only as the input channel because it is simple and convenient for personal use. The same architecture can be adapted to other messaging platforms or data sources such as Discord, Slack, WhatsApp, Gmail, Forms, APIs, or webhooks.\n\nOnce your credentials, IDs, and prompts are configured, the workflow is ready to function as your own multi-agent knowledge and project management system.",
+        "height": 400,
+        "width": 800,
+        "color": "#080808"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        -624
+      ],
+      "id": "3a1d943f-80be-4a73-a261-3b5ffc1e073b",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## ✨ BENEFITS\n\n• Automatically organizes documents, images, and ideas into a centralized knowledge base.\n\n• Saves time by generating AI summaries, categories, priorities, deadlines, and recommended actions.\n\n• Converts unstructured information into organized ClickUp tasks with minimal manual effort.\n\n• Acts as a personal second brain, making information easy to search, revisit, and manage.\n\n• Eliminates repetitive work such as creating tasks, tagging, uploading attachments, and updating trackers.\n\n• Increases productivity by allowing you to capture information quickly and focus on execution instead of organization.",
+        "height": 336,
+        "width": 448,
+        "color": "#0A1A24"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1888,
+        -1152
+      ],
+      "id": "8cd33eb6-8ec6-4234-84ed-e7dbb9cc44e9",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## 💡 IDEAL FOR\n\n• Students managing study materials and assignments.\n\n• Professionals handling documents, reports, and meeting notes.\n\n• AI Automation Specialists and Developers organizing technical references and project ideas.\n\n• Content Creators collecting inspiration, assets, and content plans.\n\n• Freelancers managing multiple clients and ongoing projects.\n\n• Entrepreneurs organizing business ideas, SOPs, and documentation.\n\n• Anyone who frequently saves documents, screenshots, notes, reminders, or ideas and wants an intelligent system to organize them automatically.",
+        "height": 352,
+        "width": 454,
+        "color": "#1F326B"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1888,
+        -784
+      ],
+      "id": "27f3e483-5898-41c8-b497-1c2327029e1d",
+      "name": "Sticky Note9"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Extract Excel": {
+      "main": [
+        [
+          {
+            "node": "📄 Prepare AI Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract CSV": {
+      "main": [
+        [
+          {
+            "node": "📄 Prepare AI Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract PDF": {
+      "main": [
+        [
+          {
+            "node": "📄 Prepare AI Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archivus: Document Assistant": {
+      "main": [
+        [
+          {
+            "node": "📄 Convert ClickUp Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Spectra: AI Image Intelligence": {
+      "main": [
+        [
+          {
+            "node": "🖼️ Convert ClickUp Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Praetor - Task & Project Intelligence": {
+      "main": [
+        [
+          {
+            "node": "📝 Convert ClickUp Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Receive Document": {
+      "main": [
+        [
+          {
+            "node": "📄 Download Telegram File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Download Telegram File": {
+      "main": [
+        [
+          {
+            "node": "📄 Detect Document Type",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📄 Merge Task & File",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "📄 Prepare AI Input": {
+      "main": [
+        [
+          {
+            "node": "Archivus: Document Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Convert ClickUp Priority": {
+      "main": [
+        [
+          {
+            "node": "📄 Get ClickUp Document Field IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Merge Task & File": {
+      "main": [
+        [
+          {
+            "node": "📄 Rename Document File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Rename Document File": {
+      "main": [
+        [
+          {
+            "node": "📄 Upload Attachment to ClickUp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Upload Attachment to ClickUp": {
+      "main": [
+        [
+          {
+            "node": "📄 Notify via Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Notify via Telegram": {
+      "main": [
+        [
+          {
+            "node": "📄 Log Activity Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Get ClickUp Document Field IDs": {
+      "main": [
+        [
+          {
+            "node": "📄 Create ClickUp Document Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Create ClickUp Document Task": {
+      "main": [
+        [
+          {
+            "node": "📄 Merge Task & File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral small": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Archivus: Document Assistant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-Oss 120b": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Archivus: Document Assistant",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Archivus: Document Assistant",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Detect Document Type": {
+      "main": [
+        [
+          {
+            "node": "Extract PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Excel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📥 Receive Telegram Message": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Classify Incoming Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚙️ Classify Incoming Message": {
+      "main": [
+        [
+          {
+            "node": "🚦 Route by Message Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚦 Route by Message Type": {
+      "main": [
+        [
+          {
+            "node": "📝 Get Text Time Received",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🖼️ Normalize Image Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📄 Receive Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🖼️ Normalize Image Data": {
+      "main": [
+        [
+          {
+            "node": "🖼️ Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🖼️ Download Image": {
+      "main": [
+        [
+          {
+            "node": "Spectra: AI Image Intelligence",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🖼️ Merge Task & Image",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "JSON Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Spectra: AI Image Intelligence",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Spectra: AI Image Intelligence",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral latest": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Spectra: AI Image Intelligence",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "🖼️ Convert ClickUp Priority": {
+      "main": [
+        [
+          {
+            "node": "🖼️ Get ClickUp Gallery Field IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🖼️ Get ClickUp Gallery Field IDs": {
+      "main": [
+        [
+          {
+            "node": "🖼️ Create ClickUp Gallery Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🖼️ Create ClickUp Gallery Task": {
+      "main": [
+        [
+          {
+            "node": "🖼️ Merge Task & Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🖼️ Rename Image File": {
+      "main": [
+        [
+          {
+            "node": "🖼️ Upload Image Attachment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🖼️ Merge Task & Image": {
+      "main": [
+        [
+          {
+            "node": "🖼️ Rename Image File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🖼️ Upload Image Attachment": {
+      "main": [
+        [
+          {
+            "node": "💬 Send Image Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💬 Send Image Summary": {
+      "main": [
+        [
+          {
+            "node": "📊 Log AI Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Get Text Time Received": {
+      "main": [
+        [
+          {
+            "node": "Praetor - Task & Project Intelligence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Praetor - Task & Project Intelligence",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Praetor - Task & Project Intelligence",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Praetor - Task & Project Intelligence",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Convert ClickUp Priority": {
+      "main": [
+        [
+          {
+            "node": "📝 Get ClickUp Project Field IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Get ClickUp Project Field IDs": {
+      "main": [
+        [
+          {
+            "node": "📝 Create ClickUp Project Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Create ClickUp Project Task": {
+      "main": [
+        [
+          {
+            "node": "💬 Send Project Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💬 Send Project Summary": {
+      "main": [
+        [
+          {
+            "node": "📊 Log Project Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Log Project Activity": {
+      "main": [
+        [
+          {
+            "node": "📈 Update Project Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Manila",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "50c36490-3d10-4b30-8708-2190733a2eca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f3e1b180c8368b445c55721ef46be4484d33a5d096f90e3ae83ca8ac8d81106a"
+  },
+  "id": "JtSJ4GBeoVQ3HRDT",
+  "tags": [
+    {
+      "updatedAt": "2026-07-09T15:27:22.932Z",
+      "createdAt": "2026-07-09T15:27:22.932Z",
+      "id": "ljXscRLqCd5cn9vu",
+      "name": "project management"
+    },
+    {
+      "name": "v1",
+      "id": "UjbUSULmhCw066cp",
+      "updatedAt": "2026-07-10T04:08:52.343Z",
+      "createdAt": "2026-07-10T04:08:52.343Z"
+    },
+    {
+      "name": "clickup",
+      "id": "AT3hBvghFghHJK1U",
+      "updatedAt": "2026-07-10T04:09:02.555Z",
+      "createdAt": "2026-07-10T04:09:02.555Z"
+    }
+  ]
+}
